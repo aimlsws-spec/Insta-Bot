@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram DM Bot Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            height: 90vh;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: #999;
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        .input-container {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-container input:focus {
+            border-color: #667eea;
+        }
+
+        .input-container button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .input-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .input-container button:active {
+            transform: translateY(0);
+        }
+
+        .input-container button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+        }
+
+        .welcome-message h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Instagram DM Bot Demo</h1>
+            <p>Python + FastAPI Chatbot</p>
+            <div class="status-badge">🟢 Demo Mode Active</div>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message">
+                <h3>👋 Welcome!</h3>
+                <p>This is a demo of our Instagram DM chatbot.</p>
+                <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                    Try asking about: pricing, HR, contact info, or services
+                </p>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Type your message..."
+                onkeypress="handleKeyPress(event)"
+            >
+            <button id="sendButton" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8001';
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addMessage(text, isUser) {
+            // Remove welcome message if exists
+            const welcomeMsg = chatContainer.querySelector('.welcome-message');
+            if (welcomeMsg) {
+                welcomeMsg.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timeDiv);
+            chatContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typing-indicator';
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            
+            typingDiv.appendChild(indicator);
+            chatContainer.appendChild(typingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Disable input
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            // Add user message
+            addMessage(message, true);
+            messageInput.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Simulate bot response (for demo)
+            setTimeout(() => {
+                removeTypingIndicator();
+                const botReply = generateBotReply(message);
+                addMessage(botReply, false);
+                
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }, 1500);
+        }
+
+        function generateBotReply(message) {
+            const msg = message.toLowerCase();
+            
+            // Greeting responses
+            if (msg.includes('hi') || msg.includes('hello') || msg.includes('hey')) {
+                return "Hello! 👋 Welcome to our Instagram Bot Platform. How can I help you today?";
+            }
+            
+            // Pricing questions
+            if (msg.includes('price') || msg.includes('cost') || msg.includes('plan')) {
+                return "We have 4 plans:\n\n💎 Free: $0 (1 account, 100 msgs/month)\n🚀 Starter: $29 (3 accounts, 1K msgs)\n⭐ Pro: $99 (10 accounts, 10K msgs)\n🏆 Enterprise: $299 (Unlimited)\n\nWhich plan interests you?";
+            }
+            
+            // Features
+            if (msg.includes('feature') || msg.includes('what can') || msg.includes('do')) {
+                return "Our bot can:\n\n✅ Auto-reply to Instagram DMs\n✅ Reply to comments automatically\n✅ Create custom conversation flows\n✅ Use message templates\n✅ Track analytics\n✅ Manage multiple accounts\n\nWant to know more about any feature?";
+            }
+            
+            // Contact/Support
+            if (msg.includes('contact') || msg.includes('support') || msg.includes('help')) {
+                return "📧 Email: support@instagrambot.com\n📱 Phone: +1 (555) 123-4567\n💬 Live Chat: Available 24/7\n\nHow else can I assist you?";
+            }
+            
+            // Demo/Trial
+            if (msg.includes('demo') || msg.includes('trial') || msg.includes('test')) {
+                return "Great! You can start with our FREE plan right now:\n\n✨ No credit card required\n✨ 1 Instagram account\n✨ 100 messages per month\n✨ Full feature access\n\nReady to get started?";
+            }
+            
+            // Thank you
+            if (msg.includes('thank') || msg.includes('thanks')) {
+                return "You're very welcome! 😊 Is there anything else I can help you with?";
+            }
+            
+            // Bye
+            if (msg.includes('bye') || msg.includes('goodbye')) {
+                return "Goodbye! 👋 Feel free to reach out anytime. Have a great day!";
+            }
+            
+            // Default response
+            return "Thanks for your message! I'm here to help with:\n\n💰 Pricing & Plans\n🤖 Features & Capabilities\n📞 Contact Information\n🎯 Demo & Trial\n\nWhat would you like to know?";
+        }
+    </script>
+</body>
+</html>
+

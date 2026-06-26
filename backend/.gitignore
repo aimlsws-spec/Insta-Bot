@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Environment — never commit real secrets
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+server.log
+server.err.log
+
+# Database files
+*.db
+*.sqlite
+db_debug.txt
+
+# Utility / dev scripts (not part of app)
+check_*.py
+get_*.py
+fix_*.py
+migrate_*.py
+verify_*.py
+update_*.py
+set_*.py
+test_token.py
+setup_reviewer.py
+remove_duplicates.py
+force_update_db.py
+
+# Images / review assets
+*.webp
